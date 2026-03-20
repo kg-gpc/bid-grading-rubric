@@ -63,9 +63,38 @@
     padding: 1.5rem;
   }
 
-  header { margin-bottom: 1.5rem; }
+  header { margin-bottom: 1rem; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
   header h1 { font-size: 22px; font-weight: 500; }
   header p { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* CSV Import */
+  .import-bar {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-med);
+    border-radius: var(--radius-md);
+    padding: 6px 10px;
+    margin-bottom: 1rem;
+  }
+  .import-bar label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+  .import-btn {
+    font-size: 12px; padding: 4px 12px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-med);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer; font-family: inherit;
+    white-space: nowrap;
+  }
+  .import-btn:hover { background: var(--bg-tertiary); }
+  .import-btn.primary {
+    background: var(--bg-info); color: var(--color-info);
+    border-color: transparent; font-weight: 500;
+  }
+  .import-status { font-size: 12px; color: var(--text-tertiary); flex: 1; }
+  .import-status.ok { color: var(--color-success); }
+  .import-status.err { color: var(--color-danger); }
+  #csv-file-input { display: none; }
 
   .bid-tabs { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
   .bid-tab {
@@ -75,18 +104,32 @@
     background: var(--bg-primary);
     color: var(--text-secondary);
     cursor: pointer; font-family: inherit;
+    max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .bid-tab:hover { background: var(--bg-secondary); }
   .bid-tab.active { background: var(--bg-info); color: var(--color-info); border-color: transparent; font-weight: 500; }
-  .bid-tab.add { border-style: dashed; }
+  .bid-tab.add { border-style: dashed; flex-shrink: 0; }
   .bid-name-input {
     font-size: 13px; padding: 4px 8px;
     border-radius: var(--radius-md);
     border: 0.5px solid var(--border-med);
     background: var(--bg-primary); color: var(--text-primary);
-    font-family: inherit; width: 110px;
+    font-family: inherit; width: 180px;
   }
   .bid-name-input:focus { outline: none; box-shadow: 0 0 0 2px var(--color-info); }
+
+  /* Bid meta strip */
+  .bid-meta-strip {
+    font-size: 12px; color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 5px 12px;
+    margin-bottom: 1rem;
+    display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  .bid-meta-strip span { display: flex; align-items: center; gap: 4px; }
+  .bid-meta-strip strong { color: var(--text-primary); font-weight: 500; }
 
   .results-bar {
     display: grid;
@@ -132,7 +175,6 @@
   .section-meta { font-size: 12px; color: var(--text-tertiary); margin-left: 6px; }
   .section-body { padding: 0; }
 
-  /* Section-level weight row */
   .sec-weight-row {
     display: flex; align-items: center; gap: 8px;
     padding: 0.6rem 1rem;
@@ -160,7 +202,6 @@
 
   .hint { font-size: 11px; color: var(--text-tertiary); margin-left: 4px; }
 
-  /* Score input */
   .score-input {
     width: 52px; border: 0.5px solid var(--border-med);
     border-radius: var(--radius-md); padding: 3px 6px;
@@ -170,12 +211,10 @@
   }
   .score-input:focus { outline: none; box-shadow: 0 0 0 2px var(--color-info); }
 
-  /* Per-item weight slider cell */
   .item-weight-cell { display: flex; align-items: center; gap: 6px; }
   .item-weight-cell input[type=range] { width: 70px; }
   .item-weight-val { font-size: 12px; font-weight: 500; width: 24px; color: var(--text-primary); }
 
-  /* Weighted score pill */
   .wscore-pill {
     display: inline-block; font-size: 11px; font-weight: 500;
     padding: 2px 7px; border-radius: 20px;
@@ -183,7 +222,6 @@
     min-width: 36px; text-align: center;
   }
 
-  /* Range slider base style */
   input[type=range] {
     -webkit-appearance: none; appearance: none;
     height: 4px; background: var(--bg-tertiary);
@@ -210,17 +248,41 @@
   .band-range { color: var(--text-secondary); width: 68px; }
   .band-bar { height: 8px; border-radius: 4px; }
 
+  /* Summary table */
+  .summary-wrap { margin-bottom: 1rem; }
+  .summary-table { width: 100%; border-collapse: collapse; background: var(--bg-primary); border-radius: var(--radius-lg); overflow: hidden; border: 0.5px solid var(--border); }
+  .summary-table th { font-size: 11px; color: var(--text-secondary); text-align: left; padding: 6px 10px; border-bottom: 0.5px solid var(--border); font-weight: 400; background: var(--bg-secondary); }
+  .summary-table td { font-size: 12px; padding: 5px 10px; border-bottom: 0.5px solid var(--border); color: var(--text-primary); }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .summary-table tr.active-row td { background: var(--bg-info); }
+  .summary-table tr:hover td { background: var(--bg-secondary); cursor: pointer; }
+  .summary-table tr.active-row:hover td { background: var(--bg-info); }
+  .due-soon { color: var(--color-warn); font-weight: 500; }
+  .due-urgent { color: var(--color-danger); font-weight: 500; }
+
   .footer { margin-top: 2rem; font-size: 12px; color: var(--text-tertiary); text-align: center; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>GC+ Bid Grading Rubric Builder</h1>
-  <p>Score each item 0–10. Set weights per item and per section. All grades update live.</p>
+  <div>
+    <h1>GC+ Bid Grading Rubric Builder</h1>
+    <p>Score each item 0–10. Set weights per item and per section. All grades update live.</p>
+  </div>
 </header>
 
+<!-- CSV Import bar -->
+<div class="import-bar">
+  <label>Trello CSV import:</label>
+  <input type="file" id="csv-file-input" accept=".csv">
+  <button class="import-btn primary" onclick="document.getElementById('csv-file-input').click()">Choose file</button>
+  <span class="import-status" id="import-status">No file loaded — using sample bids</span>
+  <button class="import-btn" onclick="resetToSample()" title="Reset to sample data">Reset</button>
+</div>
+
 <div id="bid-tabs" class="bid-tabs"></div>
+<div id="bid-meta" class="bid-meta-strip" style="display:none;"></div>
 <div id="results-bar" class="results-bar"></div>
 
 <div class="two-col">
@@ -244,6 +306,32 @@
   </div>
 </div>
 <br>
+
+<!-- All bids summary table (shown when CSV loaded) -->
+<div class="summary-wrap" id="summary-wrap" style="display:none;">
+  <div class="section-card">
+    <div class="section-header" onclick="togglePanel('summary-body','ti-summary')">
+      <span class="section-title">All bids — overview</span>
+      <span class="toggle-icon open" id="ti-summary">▶</span>
+    </div>
+    <div id="summary-body">
+      <table class="summary-table" id="summary-table">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Client</th>
+            <th>Due</th>
+            <th>List</th>
+            <th>Score</th>
+            <th>Grade</th>
+            <th>Rec.</th>
+          </tr>
+        </thead>
+        <tbody id="summary-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <div id="sections-container"></div>
 
@@ -298,21 +386,149 @@ const RECOMMEND = [
   { min: 0,  label: 'Decline' },
 ];
 
-// State: weights live here, separate from section defs so they persist across bid switches
+const SAMPLE_BIDS = [
+  { name: 'Bid 1', scores: { project:[8,7,6,8,9], site:[7,8,6,0], foundation:[9,7,8,5], masonry:[9,8,7], client:[9,8,9,7] }, meta: null },
+  { name: 'Bid 2', scores: { project:[5,4,3,6,5], site:[3,2,4,0], foundation:[5,4,3,2], masonry:[4,3,5], client:[6,5,4,3] }, meta: null },
+  { name: 'Bid 3', scores: { project:[9,8,7,9,8], site:[6,5,7,10], foundation:[8,9,7,6], masonry:[7,8,9], client:[8,7,8,8] }, meta: null },
+  { name: 'Bid 4', scores: { project:[3,5,8,4,3], site:[0,0,2,0], foundation:[2,3,1,0], masonry:[2,1,3], client:[5,4,3,2] }, meta: null },
+];
+
+function blankScores() {
+  return Object.fromEntries(SECTIONS.map(s => [s.id, s.items.map(() => 5)]));
+}
+
 let state = {
   activeBid: 0,
-  bids: [
-    { name: 'Bid 1', scores: { project:[8,7,6,8,9], site:[7,8,6,0], foundation:[9,7,8,5], masonry:[9,8,7], client:[9,8,9,7] } },
-    { name: 'Bid 2', scores: { project:[5,4,3,6,5], site:[3,2,4,0], foundation:[5,4,3,2], masonry:[4,3,5], client:[6,5,4,3] } },
-    { name: 'Bid 3', scores: { project:[9,8,7,9,8], site:[6,5,7,10], foundation:[8,9,7,6], masonry:[7,8,9], client:[8,7,8,8] } },
-    { name: 'Bid 4', scores: { project:[3,5,8,4,3], site:[0,0,2,0], foundation:[2,3,1,0], masonry:[2,1,3], client:[5,4,3,2] } },
-  ],
-  // section-level weights (must sum to 100)
+  bids: SAMPLE_BIDS.map(b => ({...b, scores: JSON.parse(JSON.stringify(b.scores))})),
   sectionWeights: Object.fromEntries(SECTIONS.map(s => [s.id, s.sectionWeight])),
-  // item-level weights: { sectionId: [w, w, w, ...] }
   itemWeights: Object.fromEntries(SECTIONS.map(s => [s.id, s.items.map(it => it.itemWeight)])),
   collapsed: {},
+  fromCSV: false,
 };
+
+// ── CSV PARSING ──────────────────────────────────────────────────────────────
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/);
+  if (lines.length < 2) return [];
+  
+  // Parse header
+  const headers = parseCSVRow(lines[0]);
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const vals = parseCSVRow(lines[i]);
+    const row = {};
+    headers.forEach((h, idx) => { row[h.trim()] = (vals[idx] || '').trim(); });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseCSVRow(line) {
+  const result = [];
+  let inQuote = false, cur = '';
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuote && line[i+1] === '"') { cur += '"'; i++; }
+      else inQuote = !inQuote;
+    } else if (ch === ',' && !inQuote) {
+      result.push(cur); cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  result.push(cur);
+  return result;
+}
+
+function formatDue(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (isNaN(d)) return null;
+  const now = new Date();
+  return Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+}
+
+function csvRowToBid(row) {
+  const listName = row['List Name'] || '';
+  // Skip declined
+  if (listName.toLowerCase().includes('declined')) return null;
+
+  const name = row['Card Name'] || 'Unnamed';
+  const client = row['Client 1'] || '';
+  const dueDate = row['Due Date'] || '';
+  const labels = row['Labels'] || '';
+
+  const scores = blankScores();
+
+  // Infer Client → Relationship tier (index 0) from labels/known clients
+  // WardHumphrey label or client name = lower score (3)
+  if (labels.toLowerCase().includes('wardhumphrey') || client.toLowerCase().includes('ward-humphrey') || client.toLowerCase().includes('ward humphrey')) {
+    scores['client'][0] = 3;
+  }
+  // Known good clients get a bump
+  const goodClients = ['r.w. allen', 'fulcrum', 'project builders'];
+  if (goodClients.some(gc => client.toLowerCase().includes(gc))) {
+    scores['client'][0] = 7;
+  }
+
+  return {
+    name: name.length > 40 ? name.slice(0, 40) + '…' : name,
+    scores,
+    meta: { client, dueDate, listName, labels, fullName: name }
+  };
+}
+
+document.getElementById('csv-file-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const rows = parseCSV(ev.target.result);
+      const bids = rows.map(csvRowToBid).filter(Boolean);
+      if (bids.length === 0) {
+        setImportStatus('No valid bids found (all declined or empty)', 'err');
+        return;
+      }
+      state.bids = bids;
+      state.activeBid = 0;
+      state.fromCSV = true;
+      setImportStatus(`Loaded ${bids.length} bids from ${file.name}`, 'ok');
+      renderAll();
+    } catch(err) {
+      setImportStatus('Parse error: ' + err.message, 'err');
+    }
+  };
+  reader.readAsText(file);
+  // Reset input so same file can be re-imported
+  this.value = '';
+});
+
+function setImportStatus(msg, cls) {
+  const el = document.getElementById('import-status');
+  el.textContent = msg;
+  el.className = 'import-status' + (cls ? ' ' + cls : '');
+}
+
+function resetToSample() {
+  state.bids = SAMPLE_BIDS.map(b => ({...b, scores: JSON.parse(JSON.stringify(b.scores))}));
+  state.activeBid = 0;
+  state.fromCSV = false;
+  setImportStatus('No file loaded — using sample bids', '');
+  renderAll();
+}
+
+// ── CALC ─────────────────────────────────────────────────────────────────────
 
 function getGrade(pct) {
   return GRADE_BANDS.find(b => pct >= b.min) || GRADE_BANDS[GRADE_BANDS.length - 1];
@@ -323,7 +539,6 @@ function getRecommend(pct) {
 
 function calcSection(secId, bidIdx) {
   const bid = state.bids[bidIdx];
-  const sec = SECTIONS.find(s => s.id === secId);
   const scores = bid.scores[secId];
   const iWeights = state.itemWeights[secId];
   const totalIW = iWeights.reduce((a, b) => a + b, 0);
@@ -331,36 +546,56 @@ function calcSection(secId, bidIdx) {
   scores.forEach((score, i) => {
     weightedSum += score * (iWeights[i] / (totalIW || 1));
   });
-  const pct = Math.round((weightedSum / 10) * 100);
-  return pct;
+  return Math.round((weightedSum / 10) * 100);
 }
 
 function calcOverall(bidIdx) {
   const totalSW = Object.values(state.sectionWeights).reduce((a, b) => a + b, 0);
   let weighted = 0;
   SECTIONS.forEach(sec => {
-    const pct = calcSection(sec.id, bidIdx);
-    weighted += pct * (state.sectionWeights[sec.id] / (totalSW || 1));
+    weighted += calcSection(sec.id, bidIdx) * (state.sectionWeights[sec.id] / (totalSW || 1));
   });
   return Math.round(weighted);
 }
 
+// ── RENDER ───────────────────────────────────────────────────────────────────
+
 function renderAll() {
   renderTabs();
+  renderBidMeta();
   renderResults();
   renderSections();
   renderGradeBands();
   renderBreakdown();
+  renderSummary();
 }
 
 function renderTabs() {
   const el = document.getElementById('bid-tabs');
   el.innerHTML = state.bids.map((b, i) => {
     if (i === state.activeBid) {
-      return `<input class="bid-name-input" value="${b.name}" oninput="renameBid(${i},this.value)">`;
+      return `<input class="bid-name-input" value="${b.name.replace(/"/g,'&quot;')}" oninput="renameBid(${i},this.value)">`;
     }
-    return `<button class="bid-tab" onclick="switchBid(${i})">${b.name}</button>`;
+    return `<button class="bid-tab" onclick="switchBid(${i})" title="${b.meta ? b.meta.fullName || b.name : b.name}">${b.name}</button>`;
   }).join('') + `<button class="bid-tab add" onclick="addBid()">+ add bid</button>`;
+}
+
+function renderBidMeta() {
+  const bid = state.bids[state.activeBid];
+  const el = document.getElementById('bid-meta');
+  if (!bid.meta) { el.style.display = 'none'; return; }
+  const { client, dueDate, listName, labels } = bid.meta;
+  const days = daysUntil(dueDate);
+  let dueClass = '';
+  if (days !== null && days <= 2) dueClass = 'due-urgent';
+  else if (days !== null && days <= 5) dueClass = 'due-soon';
+  el.style.display = 'flex';
+  el.innerHTML = [
+    client ? `<span>Client: <strong>${client}</strong></span>` : '',
+    dueDate ? `<span>Due: <strong class="${dueClass}">${formatDue(dueDate)}${days !== null ? ` (${days}d)` : ''}</strong></span>` : '',
+    listName ? `<span>List: <strong>${listName}</strong></span>` : '',
+    labels ? `<span>Labels: <strong>${labels}</strong></span>` : '',
+  ].filter(Boolean).join('');
 }
 
 function renderResults() {
@@ -396,7 +631,6 @@ function renderSections() {
     const iWeights = state.itemWeights[sec.id];
     const totalIW = iWeights.reduce((a, b) => a + b, 0);
     const sw = state.sectionWeights[sec.id];
-
     return `
     <div class="section-card">
       <div class="section-header" onclick="toggleSection('${sec.id}')">
@@ -406,7 +640,6 @@ function renderSections() {
         </div>
         <span class="toggle-icon ${isOpen ? 'open' : ''}" id="ti-${sec.id}">▶</span>
       </div>
-
       <div id="sb-${sec.id}" style="${isOpen ? '' : 'display:none;'}">
         <div class="sec-weight-row" onclick="event.stopPropagation()">
           <label>Section weight</label>
@@ -416,7 +649,6 @@ function renderSections() {
           <span class="w-val">${sw}%</span>
           <span class="w-pts">of total grade</span>
         </div>
-
         <table class="items-table">
           <thead>
             <tr>
@@ -482,6 +714,38 @@ function renderBreakdown() {
   }).join('');
 }
 
+function renderSummary() {
+  const wrap = document.getElementById('summary-wrap');
+  if (!state.fromCSV) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+
+  const tbody = document.getElementById('summary-tbody');
+  // Sort by overall score desc
+  const ranked = state.bids.map((b, i) => ({ b, i, score: calcOverall(i) }))
+    .sort((a, z) => z.score - a.score);
+
+  tbody.innerHTML = ranked.map(({ b, i, score }) => {
+    const g = getGrade(score);
+    const days = b.meta ? daysUntil(b.meta.dueDate) : null;
+    let dueStr = b.meta ? formatDue(b.meta.dueDate) : '';
+    let dueClass = '';
+    if (days !== null && days <= 2) dueClass = 'due-urgent';
+    else if (days !== null && days <= 5) dueClass = 'due-soon';
+    const isActive = i === state.activeBid;
+    return `<tr class="${isActive ? 'active-row' : ''}" onclick="switchBid(${i})">
+      <td title="${b.meta ? b.meta.fullName : b.name}">${b.name}</td>
+      <td>${b.meta ? b.meta.client : ''}</td>
+      <td class="${dueClass}">${dueStr}</td>
+      <td>${b.meta ? b.meta.listName : ''}</td>
+      <td><strong>${score}%</strong></td>
+      <td><span class="grade-badge grade-${g.grade}" style="font-size:12px;padding:1px 8px;">${g.grade}</span></td>
+      <td style="font-size:11px;">${getRecommend(score)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── INTERACTIONS ─────────────────────────────────────────────────────────────
+
 function togglePanel(bodyId, iconId) {
   const el = document.getElementById(bodyId);
   const icon = document.getElementById(iconId);
@@ -501,15 +765,11 @@ function toggleSection(id) {
 }
 
 function switchBid(i) { state.activeBid = i; renderAll(); }
-
-function renameBid(i, name) { state.bids[i].name = name; }
+function renameBid(i, name) { state.bids[i].name = name; renderSummary(); }
 
 function addBid() {
   const n = state.bids.length + 1;
-  state.bids.push({
-    name: `Bid ${n}`,
-    scores: Object.fromEntries(SECTIONS.map(s => [s.id, s.items.map(() => 5)]))
-  });
+  state.bids.push({ name: `Bid ${n}`, scores: blankScores(), meta: null });
   state.activeBid = state.bids.length - 1;
   renderAll();
 }
@@ -517,23 +777,17 @@ function addBid() {
 function updateScore(secId, itemIdx, val) {
   const clamped = Math.max(0, Math.min(10, isNaN(val) ? 0 : Math.round(val)));
   state.bids[state.activeBid].scores[secId][itemIdx] = clamped;
-  renderResults();
-  renderBreakdown();
-  renderSections();
+  renderResults(); renderBreakdown(); renderSections(); renderSummary();
 }
 
 function updateSectionWeight(secId, val) {
   state.sectionWeights[secId] = val;
-  renderResults();
-  renderBreakdown();
-  renderSections();
+  renderResults(); renderBreakdown(); renderSections(); renderSummary();
 }
 
 function updateItemWeight(secId, itemIdx, val) {
   state.itemWeights[secId][itemIdx] = val;
-  renderResults();
-  renderBreakdown();
-  renderSections();
+  renderResults(); renderBreakdown(); renderSections(); renderSummary();
 }
 
 renderAll();
