@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GC+ Bid Grading Rubric Builder</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f4;
+    --bg-tertiary: #eeece8;
+    --text-primary: #1a1a18;
+    --text-secondary: #5f5e5a;
+    --text-tertiary: #888780;
+    --border: rgba(0,0,0,0.12);
+    --border-med: rgba(0,0,0,0.20);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --color-success: #3B6D11;
+    --bg-success: #EAF3DE;
+    --color-info: #185FA5;
+    --bg-info: #E6F1FB;
+    --color-warn: #854F0B;
+    --bg-warn: #FAEEDA;
+    --color-danger: #A32D2D;
+    --bg-danger: #FCEBEB;
+    --color-purple: #534AB7;
+    --bg-purple: #EEEDFE;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1e1e1c;
+      --bg-secondary: #2a2a28;
+      --bg-tertiary: #313130;
+      --text-primary: #f0ede8;
+      --text-secondary: #b4b2a9;
+      --text-tertiary: #888780;
+      --border: rgba(255,255,255,0.10);
+      --border-med: rgba(255,255,255,0.18);
+      --color-success: #97C459;
+      --bg-success: #173404;
+      --color-info: #85B7EB;
+      --bg-info: #042C53;
+      --color-warn: #EF9F27;
+      --bg-warn: #412402;
+      --color-danger: #F09595;
+      --bg-danger: #501313;
+      --color-purple: #AFA9EC;
+      --bg-purple: #26215C;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+    min-height: 100vh;
+    padding: 1.5rem;
+  }
+
+  header { margin-bottom: 1.5rem; }
+  header h1 { font-size: 22px; font-weight: 500; }
+  header p { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+  .bid-tabs { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+  .bid-tab {
+    font-size: 13px; padding: 5px 14px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-med);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    cursor: pointer; font-family: inherit;
+  }
+  .bid-tab:hover { background: var(--bg-secondary); }
+  .bid-tab.active { background: var(--bg-info); color: var(--color-info); border-color: transparent; font-weight: 500; }
+  .bid-tab.add { border-style: dashed; }
+  .bid-name-input {
+    font-size: 13px; padding: 4px 8px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-med);
+    background: var(--bg-primary); color: var(--text-primary);
+    font-family: inherit; width: 110px;
+  }
+  .bid-name-input:focus { outline: none; box-shadow: 0 0 0 2px var(--color-info); }
+
+  .results-bar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px; margin-bottom: 1rem;
+  }
+  @media (max-width: 600px) { .results-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  .metric-card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+  }
+  .metric-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .metric-value { font-size: 24px; font-weight: 500; }
+  .grade-badge { display: inline-block; font-size: 26px; font-weight: 500; padding: 2px 12px; border-radius: var(--radius-md); }
+  .grade-A { background: var(--bg-success); color: var(--color-success); }
+  .grade-B { background: var(--bg-info);    color: var(--color-info); }
+  .grade-C { background: var(--bg-warn);    color: var(--color-warn); }
+  .grade-D { background: var(--bg-danger);  color: var(--color-danger); }
+  .grade-F { background: var(--bg-purple);  color: var(--color-purple); }
+  .weight-ok  { color: var(--color-success); }
+  .weight-bad { color: var(--color-danger); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  .section-card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem; overflow: hidden;
+  }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 0.5px solid var(--border);
+    cursor: pointer; user-select: none;
+  }
+  .section-header:hover { background: var(--bg-secondary); }
+  .section-title { font-size: 15px; font-weight: 500; }
+  .section-meta { font-size: 12px; color: var(--text-tertiary); margin-left: 6px; }
+  .section-body { padding: 0; }
+
+  /* Section-level weight row */
+  .sec-weight-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 0.6rem 1rem;
+    background: var(--bg-secondary);
+    border-bottom: 0.5px solid var(--border);
+  }
+  .sec-weight-row label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+  .sec-weight-row .w-val { font-size: 13px; font-weight: 500; width: 32px; }
+  .sec-weight-row .w-pts { font-size: 12px; color: var(--text-tertiary); margin-left: 4px; }
+
+  .items-table { width: 100%; border-collapse: collapse; }
+  .items-table th {
+    font-size: 11px; color: var(--text-secondary);
+    text-align: left; padding: 5px 10px;
+    border-bottom: 0.5px solid var(--border);
+    font-weight: 400; background: var(--bg-secondary);
+  }
+  .items-table td {
+    font-size: 13px; padding: 6px 10px;
+    border-bottom: 0.5px solid var(--border);
+    color: var(--text-primary); vertical-align: middle;
+  }
+  .items-table tr:last-child td { border-bottom: none; }
+  .items-table tr:hover td { background: var(--bg-secondary); }
+
+  .hint { font-size: 11px; color: var(--text-tertiary); margin-left: 4px; }
+
+  /* Score input */
+  .score-input {
+    width: 52px; border: 0.5px solid var(--border-med);
+    border-radius: var(--radius-md); padding: 3px 6px;
+    font-size: 13px; text-align: center;
+    background: var(--bg-secondary); color: var(--text-primary);
+    font-family: inherit;
+  }
+  .score-input:focus { outline: none; box-shadow: 0 0 0 2px var(--color-info); }
+
+  /* Per-item weight slider cell */
+  .item-weight-cell { display: flex; align-items: center; gap: 6px; }
+  .item-weight-cell input[type=range] { width: 70px; }
+  .item-weight-val { font-size: 12px; font-weight: 500; width: 24px; color: var(--text-primary); }
+
+  /* Weighted score pill */
+  .wscore-pill {
+    display: inline-block; font-size: 11px; font-weight: 500;
+    padding: 2px 7px; border-radius: 20px;
+    background: var(--bg-secondary); color: var(--text-secondary);
+    min-width: 36px; text-align: center;
+  }
+
+  /* Range slider base style */
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    height: 4px; background: var(--bg-tertiary);
+    border-radius: 2px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--color-info);
+    cursor: pointer; border: 2px solid var(--bg-primary);
+    box-shadow: 0 0 0 1px var(--color-info);
+  }
+
+  .toggle-icon { font-size: 10px; color: var(--text-tertiary); transition: transform 0.15s; display: inline-block; }
+  .toggle-icon.open { transform: rotate(90deg); }
+
+  .progress-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .progress-label { font-size: 12px; color: var(--text-secondary); width: 84px; flex-shrink: 0; }
+  .progress-track { flex: 1; height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.2s; }
+  .progress-val { font-size: 12px; color: var(--text-secondary); width: 32px; text-align: right; }
+
+  .band-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 12px; }
+  .band-letter { width: 16px; font-weight: 500; }
+  .band-range { color: var(--text-secondary); width: 68px; }
+  .band-bar { height: 8px; border-radius: 4px; }
+
+  .footer { margin-top: 2rem; font-size: 12px; color: var(--text-tertiary); text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>GC+ Bid Grading Rubric Builder</h1>
+  <p>Score each item 0–10. Set weights per item and per section. All grades update live.</p>
+</header>
+
+<div id="bid-tabs" class="bid-tabs"></div>
+<div id="results-bar" class="results-bar"></div>
+
+<div class="two-col">
+  <div class="section-card" style="margin-bottom:0;">
+    <div class="section-header" onclick="togglePanel('grade-bands-body','ti-bands')">
+      <span class="section-title">Grade bands</span>
+      <span class="toggle-icon open" id="ti-bands">▶</span>
+    </div>
+    <div id="grade-bands-body" style="padding:0.75rem 1rem;">
+      <div id="grade-bands-display"></div>
+    </div>
+  </div>
+  <div class="section-card" style="margin-bottom:0;">
+    <div class="section-header" onclick="togglePanel('breakdown-body','ti-breakdown')">
+      <span class="section-title">Section breakdown</span>
+      <span class="toggle-icon open" id="ti-breakdown">▶</span>
+    </div>
+    <div id="breakdown-body" style="padding:0.75rem 1rem;">
+      <div id="breakdown-bars"></div>
+    </div>
+  </div>
+</div>
+<br>
+
+<div id="sections-container"></div>
+
+<div class="footer">GC+ Bid Grading Tool — Pre-development rubric sandbox — Georgia Concrete Plus</div>
+
+<script>
+const SECTIONS = [
+  { id: 'project', label: 'Project', color: '#378ADD', sectionWeight: 20, items: [
+    { label: 'Distance',         hint: 'mi',    itemWeight: 1 },
+    { label: 'Schedule realism', hint: '',       itemWeight: 1 },
+    { label: 'GC bid pool',      hint: '',       itemWeight: 1 },
+    { label: 'Plan quality',     hint: 'A–F',   itemWeight: 1 },
+    { label: 'Project type fit', hint: '',       itemWeight: 1 },
+  ]},
+  { id: 'site', label: 'Site', color: '#1D9E75', sectionWeight: 20, items: [
+    { label: 'Sidewalk',           hint: 'SF',  itemWeight: 1 },
+    { label: 'Concrete paving',    hint: 'SF',  itemWeight: 1 },
+    { label: 'Curb & gutter',      hint: 'LF',  itemWeight: 1 },
+    { label: 'Dumpster enclosure', hint: 'Y/N', itemWeight: 1 },
+  ]},
+  { id: 'foundation', label: 'Foundation', color: '#BA7517', sectionWeight: 20, items: [
+    { label: 'SOG / slab',         hint: 'SF',    itemWeight: 1 },
+    { label: 'Pad footing',        hint: 'count', itemWeight: 1 },
+    { label: 'Strip footing',      hint: 'LF',    itemWeight: 1 },
+    { label: 'Special conditions', hint: '',       itemWeight: 1 },
+  ]},
+  { id: 'masonry', label: 'Masonry', color: '#D4537E', sectionWeight: 25, items: [
+    { label: 'Exterior brick', hint: 'SF', itemWeight: 1 },
+    { label: 'Exterior EIFS',  hint: 'SF', itemWeight: 1 },
+    { label: 'CMU walls',      hint: '',   itemWeight: 1 },
+  ]},
+  { id: 'client', label: 'Client', color: '#7F77DD', sectionWeight: 15, items: [
+    { label: 'Relationship tier',  hint: 'A/B/C/D', itemWeight: 1 },
+    { label: 'Previously awarded', hint: 'count',   itemWeight: 1 },
+    { label: 'Payment history',    hint: '',         itemWeight: 1 },
+    { label: 'Bid-to-win ratio',   hint: '',         itemWeight: 1 },
+  ]},
+];
+
+const GRADE_BANDS = [
+  { grade: 'A', min: 85, color: '#3B6D11', bg: '#EAF3DE' },
+  { grade: 'B', min: 70, color: '#185FA5', bg: '#E6F1FB' },
+  { grade: 'C', min: 55, color: '#854F0B', bg: '#FAEEDA' },
+  { grade: 'D', min: 40, color: '#A32D2D', bg: '#FCEBEB' },
+  { grade: 'F', min: 0,  color: '#534AB7', bg: '#EEEDFE' },
+];
+const RECOMMEND = [
+  { min: 85, label: 'Strong bid' },
+  { min: 70, label: 'Bid' },
+  { min: 55, label: 'Review carefully' },
+  { min: 40, label: 'Likely decline' },
+  { min: 0,  label: 'Decline' },
+];
+
+// State: weights live here, separate from section defs so they persist across bid switches
+let state = {
+  activeBid: 0,
+  bids: [
+    { name: 'Bid 1', scores: { project:[8,7,6,8,9], site:[7,8,6,0], foundation:[9,7,8,5], masonry:[9,8,7], client:[9,8,9,7] } },
+    { name: 'Bid 2', scores: { project:[5,4,3,6,5], site:[3,2,4,0], foundation:[5,4,3,2], masonry:[4,3,5], client:[6,5,4,3] } },
+    { name: 'Bid 3', scores: { project:[9,8,7,9,8], site:[6,5,7,10], foundation:[8,9,7,6], masonry:[7,8,9], client:[8,7,8,8] } },
+    { name: 'Bid 4', scores: { project:[3,5,8,4,3], site:[0,0,2,0], foundation:[2,3,1,0], masonry:[2,1,3], client:[5,4,3,2] } },
+  ],
+  // section-level weights (must sum to 100)
+  sectionWeights: Object.fromEntries(SECTIONS.map(s => [s.id, s.sectionWeight])),
+  // item-level weights: { sectionId: [w, w, w, ...] }
+  itemWeights: Object.fromEntries(SECTIONS.map(s => [s.id, s.items.map(it => it.itemWeight)])),
+  collapsed: {},
+};
+
+function getGrade(pct) {
+  return GRADE_BANDS.find(b => pct >= b.min) || GRADE_BANDS[GRADE_BANDS.length - 1];
+}
+function getRecommend(pct) {
+  return (RECOMMEND.find(r => pct >= r.min) || RECOMMEND[RECOMMEND.length - 1]).label;
+}
+
+function calcSection(secId, bidIdx) {
+  const bid = state.bids[bidIdx];
+  const sec = SECTIONS.find(s => s.id === secId);
+  const scores = bid.scores[secId];
+  const iWeights = state.itemWeights[secId];
+  const totalIW = iWeights.reduce((a, b) => a + b, 0);
+  let weightedSum = 0;
+  scores.forEach((score, i) => {
+    weightedSum += score * (iWeights[i] / (totalIW || 1));
+  });
+  const pct = Math.round((weightedSum / 10) * 100);
+  return pct;
+}
+
+function calcOverall(bidIdx) {
+  const totalSW = Object.values(state.sectionWeights).reduce((a, b) => a + b, 0);
+  let weighted = 0;
+  SECTIONS.forEach(sec => {
+    const pct = calcSection(sec.id, bidIdx);
+    weighted += pct * (state.sectionWeights[sec.id] / (totalSW || 1));
+  });
+  return Math.round(weighted);
+}
+
+function renderAll() {
+  renderTabs();
+  renderResults();
+  renderSections();
+  renderGradeBands();
+  renderBreakdown();
+}
+
+function renderTabs() {
+  const el = document.getElementById('bid-tabs');
+  el.innerHTML = state.bids.map((b, i) => {
+    if (i === state.activeBid) {
+      return `<input class="bid-name-input" value="${b.name}" oninput="renameBid(${i},this.value)">`;
+    }
+    return `<button class="bid-tab" onclick="switchBid(${i})">${b.name}</button>`;
+  }).join('') + `<button class="bid-tab add" onclick="addBid()">+ add bid</button>`;
+}
+
+function renderResults() {
+  const overall = calcOverall(state.activeBid);
+  const g = getGrade(overall);
+  const totalSW = Object.values(state.sectionWeights).reduce((a, b) => a + b, 0);
+  const swOk = Math.abs(totalSW - 100) < 1;
+  document.getElementById('results-bar').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Overall score</div>
+      <div class="metric-value">${overall}%</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Grade</div>
+      <div class="metric-value"><span class="grade-badge grade-${g.grade}">${g.grade}</span></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Section weights</div>
+      <div class="metric-value ${swOk ? 'weight-ok' : 'weight-bad'}">${totalSW}%</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Recommendation</div>
+      <div class="metric-value" style="font-size:14px;padding-top:4px;">${getRecommend(overall)}</div>
+    </div>
+  `;
+}
+
+function renderSections() {
+  const bid = state.bids[state.activeBid];
+  document.getElementById('sections-container').innerHTML = SECTIONS.map(sec => {
+    const isOpen = !state.collapsed[sec.id];
+    const secPct = calcSection(sec.id, state.activeBid);
+    const iWeights = state.itemWeights[sec.id];
+    const totalIW = iWeights.reduce((a, b) => a + b, 0);
+    const sw = state.sectionWeights[sec.id];
+
+    return `
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('${sec.id}')">
+        <div style="display:flex;align-items:center;">
+          <span class="section-title">${sec.label}</span>
+          <span class="section-meta">${secPct}%</span>
+        </div>
+        <span class="toggle-icon ${isOpen ? 'open' : ''}" id="ti-${sec.id}">▶</span>
+      </div>
+
+      <div id="sb-${sec.id}" style="${isOpen ? '' : 'display:none;'}">
+        <div class="sec-weight-row" onclick="event.stopPropagation()">
+          <label>Section weight</label>
+          <input type="range" min="0" max="60" step="1" value="${sw}"
+            style="flex:1;max-width:160px;"
+            oninput="updateSectionWeight('${sec.id}',+this.value)">
+          <span class="w-val">${sw}%</span>
+          <span class="w-pts">of total grade</span>
+        </div>
+
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th style="width:36%;">Item</th>
+              <th style="width:13%;">Score</th>
+              <th style="width:28%;">Item weight</th>
+              <th style="width:13%;">Weighted</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sec.items.map((item, i) => {
+              const score = bid.scores[sec.id][i];
+              const iw = iWeights[i];
+              const weighted = totalIW > 0 ? Math.round((score * iw / totalIW) * 10) / 10 : 0;
+              return `
+              <tr>
+                <td>${item.label}${item.hint ? `<span class="hint">${item.hint}</span>` : ''}</td>
+                <td>
+                  <input class="score-input" type="number" min="0" max="10" step="1"
+                    value="${score}"
+                    oninput="updateScore('${sec.id}',${i},+this.value)">
+                </td>
+                <td>
+                  <div class="item-weight-cell">
+                    <input type="range" min="0" max="5" step="1" value="${iw}"
+                      oninput="updateItemWeight('${sec.id}',${i},+this.value)">
+                    <span class="item-weight-val">${iw}x</span>
+                  </div>
+                </td>
+                <td><span class="wscore-pill">${weighted.toFixed(1)}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderGradeBands() {
+  document.getElementById('grade-bands-display').innerHTML = GRADE_BANDS.map((b, i) => {
+    const next = GRADE_BANDS[i - 1];
+    const range = next ? `${b.min}–${next.min - 1}%` : `≥${b.min}%`;
+    const width = Math.max(20, (next ? next.min - b.min : 40) * 1.4);
+    return `<div class="band-row">
+      <span class="band-letter" style="color:${b.color};">${b.grade}</span>
+      <span class="band-range">${range}</span>
+      <div class="band-bar" style="width:${width}px;background:${b.bg};border:1px solid ${b.color}44;"></div>
+    </div>`;
+  }).join('');
+}
+
+function renderBreakdown() {
+  document.getElementById('breakdown-bars').innerHTML = SECTIONS.map(sec => {
+    const pct = calcSection(sec.id, state.activeBid);
+    return `<div class="progress-row">
+      <span class="progress-label">${sec.label}</span>
+      <div class="progress-track">
+        <div class="progress-fill" style="width:${pct}%;background:${sec.color};"></div>
+      </div>
+      <span class="progress-val">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+function togglePanel(bodyId, iconId) {
+  const el = document.getElementById(bodyId);
+  const icon = document.getElementById(iconId);
+  const hidden = el.style.display === 'none';
+  el.style.display = hidden ? '' : 'none';
+  if (icon) icon.classList.toggle('open', hidden);
+}
+
+function toggleSection(id) {
+  const el = document.getElementById('sb-' + id);
+  const icon = document.getElementById('ti-' + id);
+  if (!el) return;
+  const hidden = el.style.display === 'none';
+  el.style.display = hidden ? '' : 'none';
+  if (icon) icon.classList.toggle('open', hidden);
+  state.collapsed[id] = !hidden;
+}
+
+function switchBid(i) { state.activeBid = i; renderAll(); }
+
+function renameBid(i, name) { state.bids[i].name = name; }
+
+function addBid() {
+  const n = state.bids.length + 1;
+  state.bids.push({
+    name: `Bid ${n}`,
+    scores: Object.fromEntries(SECTIONS.map(s => [s.id, s.items.map(() => 5)]))
+  });
+  state.activeBid = state.bids.length - 1;
+  renderAll();
+}
+
+function updateScore(secId, itemIdx, val) {
+  const clamped = Math.max(0, Math.min(10, isNaN(val) ? 0 : Math.round(val)));
+  state.bids[state.activeBid].scores[secId][itemIdx] = clamped;
+  renderResults();
+  renderBreakdown();
+  renderSections();
+}
+
+function updateSectionWeight(secId, val) {
+  state.sectionWeights[secId] = val;
+  renderResults();
+  renderBreakdown();
+  renderSections();
+}
+
+function updateItemWeight(secId, itemIdx, val) {
+  state.itemWeights[secId][itemIdx] = val;
+  renderResults();
+  renderBreakdown();
+  renderSections();
+}
+
+renderAll();
+</script>
+</body>
+</html>
